@@ -1,0 +1,16 @@
+package notifiers;
+
+import examples.gipc.counter.customization.ACustomDuplexObjectClientInputPort;
+import inputport.datacomm.AReceiveRegistrarAndNotifier;
+import client.ClientInputPortHandler;
+import util.trace.port.objects.ReceivedMessageQueued;
+
+public class ClientRecNotifier extends AReceiveRegistrarAndNotifier {
+	
+	@Override
+	public void notifyPortReceive(String aSource, Object aMessage) {
+		super.notifyPortReceive(aSource, aMessage);
+		ACustomDuplexObjectClientInputPort.getPort().offer(aMessage);
+		ReceivedMessageQueued.newCase(this, ACustomDuplexObjectClientInputPort.getPort(), aMessage);
+	}
+}

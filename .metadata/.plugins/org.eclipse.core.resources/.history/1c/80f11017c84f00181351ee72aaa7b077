@@ -1,0 +1,22 @@
+package commandprocessing;
+
+import inputport.datacomm.duplex.DuplexInputPort;
+import inputport.rpc.RPCRegistry;
+import inputport.rpc.duplex.ADuplexReceivedCallInvoker;
+import inputport.rpc.duplex.LocalRemoteReferenceTranslator;
+
+public class ReceivedCallInvoker extends ADuplexReceivedCallInvoker {
+
+	public ReceivedCallInvoker(LocalRemoteReferenceTranslator aLocalRemoteReferenceTranslator,
+			DuplexInputPort<Object> aReplier, RPCRegistry theRPCRegistry) {
+		super(aLocalRemoteReferenceTranslator, aReplier, theRPCRegistry);
+		
+	}
+	@Override
+	protected void handleProcedureReturn(String aSender, Exception e) {
+		super.handleFunctionReturn(aSender, null, null, e);
+	}
+	
+	
+
+}

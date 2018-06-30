@@ -1,0 +1,44 @@
+1525135938419	Delete element
+1525137669276	Rename field 'simParams'
+1525137716309	Rename local variable 'newValue'
+1525137770940	Rename local variable 'newValue'
+1525137886765	Rename local variable 'newValue'
+1525138016453	Rename field 'commandProcessorProxy'
+1525138254216	Move compilation unit
+1525138259537	Move compilation unit
+1525193955969	Rename local variable 'newCommand'
+1525196081709	Rename local variable 'newValue'
+1525196088816	Rename local variable 'newValue'
+1525241203037	Rename field 'clients'
+1525241410863	Rename local variable 'command'
+1525242048440	Rename method 'processRemoteCommand'
+1525242123929	Rename method 'remoteSetAtomic'
+1525242149123	Rename method 'remoteSetIPC'
+1525242168093	Rename method 'receiveProposal'
+1525270985532	Rename local variable 'retVal'
+1525284868990	Move compilation unit
+1525284876251	Move compilation unit
+1525284885169	Delete element
+1525291288061	Move compilation unit
+1525291320513	Move compilation unit
+1525291323947	Move compilation unit
+1525291328532	Move compilation unit
+1525291331693	Move compilation unit
+1525291334721	Move compilation unit
+1525291341772	Move compilation unit
+1525291344227	Move compilation unit
+1525291346804	Move compilation unit
+1525291349886	Move compilation unit
+1525291355594	Move compilation unit
+1525291364210	Move compilation unit
+1525291379552	Rename package 'rmi'
+1525291388865	Delete element
+1525291392168	Delete element
+1525291398436	Move compilation unit
+1525291401577	Move compilation unit
+1525291404389	Move compilation unit
+1525291417238	Delete element
+1525292014187	Delete elements
+1525304013799	Rename method 'executeRemoteCmd'
+1525304144958	Rename method 'executeCommand'
+1525305868263	Delete element

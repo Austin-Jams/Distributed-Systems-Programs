@@ -1,0 +1,14 @@
+package factories;
+
+import inputport.rpc.duplex.ADuplexSentCallCompleterFactory;
+import inputport.rpc.duplex.DuplexRPCInputPort;
+import inputport.rpc.duplex.DuplexSentCallCompleter;
+import inputport.rpc.duplex.LocalRemoteReferenceTranslator;
+import commandprocessing.SentCallCompleterHandler;
+
+public class SentCallCompleteHandlerFactory extends ADuplexSentCallCompleterFactory {
+	@Override
+	public DuplexSentCallCompleter createDuplexSentCallCompleter(DuplexRPCInputPort aPort, LocalRemoteReferenceTranslator aTranslator) {
+		return new SentCallCompleterHandler(aPort, aTranslator);
+	}
+}

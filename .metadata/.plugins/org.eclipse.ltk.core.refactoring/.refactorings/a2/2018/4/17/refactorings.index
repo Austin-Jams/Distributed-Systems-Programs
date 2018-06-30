@@ -1,0 +1,9 @@
+1524800705627	Rename type 'RMICommandProcessorInterface'
+1524800728506	Rename type 'RMICommandProcessor'
+1524839427209	Rename field 'serverProxy'
+1524839450829	Rename field 'commandProcessorProxy'
+1524841006898	Rename local variable 'serverProxy'
+1524946097294	Rename type 'RMIclient'
+1524946118404	Rename compilation unit 'RMIinterface.java'
+1524946131526	Rename type 'RMIserver'
+1524947634847	Delete element

@@ -1,0 +1,38 @@
+1525141943598	Rename type 'ACustomAsynchronousDuplexReceivedCallInvokerFactory'
+1525142390600	Delete element
+1525142394850	Delete element
+1525142399225	Delete element
+1525143228965	Rename type 'ACustomReceiveRegistrarAndNotifier'
+1525143276845	Rename type 'ACustomClientReceiveRegistrarAndNotifier'
+1525143452748	Rename type 'SentCallFactory'
+1525143516770	Rename type 'SentCallAndInvokerReceiveFactory'
+1525143620728	Delete element
+1525143714114	Rename package 'duplexmain'
+1525145075003	Rename package 'ports'
+1525182666660	Delete element
+1525195198107	Rename local variable 'aRemoteHandler'
+1525195219385	Rename local variable 'message'
+1525195245679	Rename local variable 'aMessage'
+1525195256872	Rename local variable 'message'
+1525195316054	Rename local variable 'retVal'
+1525199898419	Rename field 'anonPort'
+1525199982475	Rename local variable 'portToReceiveOn'
+1525200709458	Rename local variable 'invokerName'
+1525200827649	Rename local variable 'command'
+1525249855796	Rename compilation unit 'ACustomDuplexReceiveNotifier.java'
+1525249889912	Delete element
+1525250386408	Rename type 'DuplexFactories'
+1525250911151	Rename type 'ACustomCustomDuplexObjectInputPortFactory'
+1525256254823	Rename field 'clients'
+1525256456522	Rename local variable 'newValue'
+1525256542233	Rename local variable 'clientProxy'
+1525258171589	Move compilation unit
+1525258204415	Delete element
+1525395307693	Rename field 'gipcRegistry'
+1525396620903	Move compilation unit
+1525397993424	Rename compilation unit 'SentCallCompleteFactory.java'
+1525398076501	Rename type 'SentCallCompleter'
+1525398709308	Delete element
+1525446240432	Delete element
+1525446720444	Move compilation unit
+1525448693251	Move compilation unit

@@ -1,0 +1,10 @@
+package factories;
+
+public class ObjectInportFactory {
+	public DuplexClientInputPort<Object> createDuplexClientInputPort(DuplexClientInputPort<ByteBuffer> bbClientInputPort) {
+		return new ACustomDuplexObjectClientInputPort(bbClientInputPort);
+	}
+	public DuplexServerInputPort<Object> createDuplexServerInputPort(DuplexServerInputPort<ByteBuffer> bbServerInputPort) {
+		return new ACustomDuplexObjectServerInputPort(bbServerInputPort);
+	}
+}

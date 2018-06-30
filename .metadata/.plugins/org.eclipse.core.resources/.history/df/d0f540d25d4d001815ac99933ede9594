@@ -1,0 +1,130 @@
+package rmi;
+
+import java.beans.PropertyChangeEvent;
+import util.trace.port.consensus.*;
+import util.tags.DistributedTags;
+import java.beans.PropertyChangeListener;
+import java.nio.ByteBuffer;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
+import assignments.util.inputParameters.SimulationParametersListener;
+import assignments.util.mainArgs.ClientArgsProcessor;
+import examples.mvc.rmi.duplex.DistributedRMICounter;
+import main.Client;
+import inputport.nio.manager.NIOManagerFactory;
+import util.annotations.Tags;
+import util.interactiveMethodInvocation.ConsensusAlgorithm;
+import util.interactiveMethodInvocation.IPCMechanism;
+import util.misc.ThreadSupport;
+import util.trace.bean.BeanTraceUtility;
+import util.trace.bean.NotifiedPropertyChangeEvent;
+import util.trace.factories.FactoryTraceUtility;
+import util.trace.misc.ThreadDelayed;
+import util.trace.port.consensus.ConsensusTraceUtility;
+import util.trace.port.consensus.communication.CommunicationStateNames;
+import util.trace.port.nio.NIOTraceUtility;
+import util.trace.port.rpc.rmi.RMIObjectRegistered;
+import util.trace.port.rpc.rmi.RMIRegistryLocated;
+import util.trace.port.rpc.rmi.RMITraceUtility;
+
+public class RemoteClient implements PropertyChangeListener {
+
+	private Processor cpProxy;
+	private String name;
+	private RemoteServerInterface sProxy;
+
+	public RemoteClient(RemoteServerInterface serverProxy) {
+		this.sProxy = serverProxy;
+		cpProxy = new CommandProcessor(this);
+		name = Math.random() + "";
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent anEvent) {
+		if (!anEvent.getPropertyName().equals("InputString") || !Client.getSingleton().getIPCMechanism().equals(IPCMechanism.RMI)){
+			return;
+		}
+		NotifiedPropertyChangeEvent.newCase(this, anEvent, new PropertyChangeListener[] {});
+		String cmd =  anEvent.getNewValue().toString();
+		System.out.println("Client requests " + cmd);
+		if (!Client.getSingleton().isLocalProcessingOnly()) {
+			if (!Client.getSingleton().isAtomicBroadcast()) {
+					try {
+						cpProxy.processRemoteCommand(cmd);
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			}
+			try {
+				ThreadSupport.sleep(Client.getSingleton().getDelay());
+				if (Client.getSingleton().isAtomicBroadcast()) {
+					ProposalMade.newCase(this, CommunicationStateNames.COMMAND, -1, cmd);
+
+				}
+				RemoteProposeRequestSent.newCase(this, CommunicationStateNames.COMMAND, -1, cmd);
+				sProxy.executeCommand(this.name, cmd);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				cpProxy.processRemoteCommand(cmd);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+
+	public static void main(String[] args) {
+		FactoryTraceUtility.setTracing();
+		BeanTraceUtility.setTracing();
+		NIOTraceUtility.setTracing();
+		RMITraceUtility.setTracing();
+		ConsensusTraceUtility.setTracing();
+		ThreadDelayed.enablePrint();
+
+		try {
+			Registry rmiRegistry = LocateRegistry.getRegistry(ClientArgsProcessor.getRegistryPort(args));
+			RemoteServerInterface serverProxy = (RemoteServerInterface) rmiRegistry.lookup(RemoteServer.RMI_SERVER_NAME);
+			RemoteClient client = new RemoteClient(serverProxy);
+	
+			// export
+			UnicastRemoteObject.exportObject(client.cpProxy, 0);
+			RMIObjectRegistered.newCase(RemoteClient.class, client.name, client, rmiRegistry);
+			rmiRegistry.rebind(client.name, client.cpProxy);
+
+			serverProxy.join(client.name, client.cpProxy);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void experimentInput() {
+		// TODO Auto-generated method stub
+
+	}
+	public String getClientName() {
+		return name;
+	}
+	public Processor getProxy() {
+		return cpProxy;
+	}
+	public void quit(int aCode) {
+		System.exit(aCode);
+
+	}
+
+	public void simulationCommand(String aCommand) {
+		// TODO Auto-generated method stub
+
+	}
+
+}

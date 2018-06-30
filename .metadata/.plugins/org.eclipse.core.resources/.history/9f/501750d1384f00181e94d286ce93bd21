@@ -1,0 +1,99 @@
+package server;
+
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.Map;
+
+import assignments.util.mainArgs.RegistryArgsProcessor;
+import assignments.util.mainArgs.ServerArgsProcessor;
+import commandprocessing.Processor;
+import consensus.ProposalFeedbackKind;
+import examples.mvc.rmi.duplex.ADistributedInheritingRMICounter;
+import inputport.rpc.GIPCLocateRegistry;
+import inputport.rpc.GIPCRegistry;
+import port.ATracingConnectionListener;
+import util.interactiveMethodInvocation.ConsensusAlgorithm;
+import util.interactiveMethodInvocation.IPCMechanism;
+import util.misc.ThreadSupport;
+import util.trace.port.consensus.ProposalAcceptRequestSent;
+import util.trace.port.consensus.ProposalAcceptedNotificationReceived;
+import util.trace.port.consensus.ProposalLearnedNotificationSent;
+import util.trace.port.consensus.RemoteProposeRequestReceived;
+import util.trace.port.consensus.communication.CommunicationStateNames;
+import util.trace.port.rpc.gipc.GIPCObjectLookedUp;
+import util.trace.port.rpc.rmi.RMIObjectLookedUp;
+
+public class GIPCServerHandler implements RemoteServerInterface {
+	public static final String GIPC_SERVER_NAME = "GIPC_SERVER";
+	private GIPCRegistry registry;
+	private Map<String, Processor> clientMap;
+
+	public GIPCServerHandler(GIPCRegistry gipcRegistry) {
+		this.registry = gipcRegistry;
+		clientMap = new HashMap<String, Processor>();
+	}
+
+	public GIPCRegistry getGIPCRegistry() {
+		return this.registry;
+	}
+	@Override
+	public synchronized void join(String name, Processor proxy) throws RemoteException {
+		clientMap.put(name, proxy);
+	}
+
+	@Override
+	public void submitCommand(String invokerName, String cmd) throws RemoteException {
+		RemoteProposeRequestReceived.newCase(this, CommunicationStateNames.COMMAND, -1, cmd);
+		RemoteProposeRequestReceived.newCase(this, CommunicationStateNames.COMMAND, -1, cmd);
+		if (Server.getSingleton().getConsensusAlgorithm() == ConsensusAlgorithm.CENTRALIZED_SYNCHRONOUS) {
+			boolean accept = true;
+			for (String proxyName : clientMap.keySet()) {
+				ProposalAcceptRequestSent.newCase(this, CommunicationStateNames.COMMAND, -1, cmd);
+				boolean clientAccept = clientMap.get(proxyName).rProposal(CommunicationStateNames.COMMAND, cmd);
+				ProposalAcceptedNotificationReceived.newCase(this, CommunicationStateNames.COMMAND, -1, cmd,
+						ProposalFeedbackKind.SUCCESS);
+				if (!clientAccept && !accept) {
+					cmd = "";
+				}
+			}
+			
+		}
+		
+		for (String proxyName : clientMap.keySet()) {
+			if (!Server.getSingleton().isAtomicBroadcast() && invokerName.equals(proxyName)) {
+				continue;
+			}
+			
+			try {
+				ThreadSupport.sleep(Server.getSingleton().getDelay());
+
+				ProposalLearnedNotificationSent.newCase(this, CommunicationStateNames.COMMAND, -1, cmd);
+
+				clientMap.get(proxyName).submitRemoteCmd(cmd);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	@Override
+	public void broadcastAtomic(Boolean state) throws RemoteException {
+		Server.rmiServer.broadcastAtomic(state);
+	}
+
+	@Override
+	public void broadcastIPC(IPCMechanism state) throws RemoteException {
+		Server.rmiServer.broadcastIPC(state);
+
+	}
+
+	public static void main(String[] args) {
+		GIPCRegistry gipcRegistry = GIPCLocateRegistry.createRegistry(ServerArgsProcessor.getGIPCServerPort(args));
+		GIPCServerHandler gipcServer = new GIPCServerHandler(gipcRegistry);
+		gipcRegistry.rebind(GIPC_SERVER_NAME, gipcServer);
+		gipcRegistry.getInputPort().addConnectionListener(new ATracingConnectionListener(gipcRegistry.getInputPort()));
+
+	}
+}

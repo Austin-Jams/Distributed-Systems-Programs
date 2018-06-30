@@ -1,0 +1,15 @@
+package simulations;
+
+import util.annotations.Tags;
+import util.annotations.Comp533Tags;
+
+@Tags({ Comp533Tags.EXPLICIT_RECEIVE_CLIENT2 })
+public class OneClientLauncher2 {
+
+	public static void main(String[] args) {
+		assignments.util.A4TraceUtility.setTracing();
+		OneClient.launch("Client 2");
+
+	}
+
+}

@@ -1,0 +1,9 @@
+package nioclient;
+
+import client.NIOClient;
+
+public class NIOClientLauncher {
+	public static void main(String[] args) {
+		NIOClient.main(args);
+	}
+}

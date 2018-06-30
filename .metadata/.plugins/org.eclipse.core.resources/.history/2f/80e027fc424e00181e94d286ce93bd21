@@ -1,0 +1,138 @@
+package nioserver;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+
+import javax.net.ServerSocketFactory;
+
+import assignments.util.inputParameters.ASimulationParametersController;
+import assignments.util.inputParameters.SimulationParametersListener;
+import assignments.util.mainArgs.ClientArgsProcessor;
+import assignments.util.mainArgs.ServerArgsProcessor;
+import main.Server;
+import util.trace.bean.BeanTraceUtility;
+import util.trace.factories.FactoryTraceUtility;
+import util.trace.factories.SelectorFactorySet;
+import util.trace.misc.ThreadDelayed;
+import util.trace.port.consensus.ConsensusTraceUtility;
+import util.trace.port.nio.NIOTraceUtility;
+import util.trace.port.nio.SocketChannelBound;
+import util.trace.port.rpc.rmi.RMITraceUtility;
+import inputport.nio.manager.AnNIOManager;
+import inputport.nio.manager.NIOManager;
+import inputport.nio.manager.NIOManagerFactory;
+import inputport.nio.manager.SelectionManager;
+import inputport.nio.manager.factories.SelectionManagerFactory;
+import inputport.nio.manager.factories.classes.AReadingAcceptCommandFactory;
+import inputport.nio.manager.factories.selectors.AcceptCommandFactorySelector;
+import inputport.nio.manager.listeners.SocketChannelAcceptListener;
+
+import util.annotations.Tags;
+import util.interactiveMethodInvocation.ConsensusAlgorithm;
+import util.interactiveMethodInvocation.IPCMechanism;
+import util.interactiveMethodInvocation.SimulationParametersController;
+import util.tags.DistributedTags;
+
+
+public class NIOServer implements SocketChannelAcceptListener {
+	public static final String READ_THREAD_NAME = "Read Thread";
+	Receiver sReceiver;
+	ServerSocketChannel serverSocketChannel;
+	private ArrayBlockingQueue<Map<SocketChannel, ByteBuffer>> readRequests;
+	private List<SocketChannel> clientList;
+	
+	private boolean atomic;
+	private boolean localProcessing;
+
+	public NIOServer() {
+		readRequests = new ArrayBlockingQueue<Map<SocketChannel, ByteBuffer>>(4096);
+		clientList = new ArrayList<SocketChannel>();
+		atomic = false;
+		localProcessing = false;
+		Reader reader = new Reader(this, readRequests, clientList);
+		Thread readThread = new Thread(reader);
+		readThread.setName(READ_THREAD_NAME);
+		readThread.start();
+	}
+
+	protected void createCommunicationObjects() {
+		createReceiver();
+	}
+
+	protected void createReceiver() {
+		sReceiver = new Receiver(readRequests);
+	}
+
+	protected void setFactories() {
+		AcceptCommandFactorySelector.setFactory(new AReadingAcceptCommandFactory());
+	}
+
+	protected void makeServerConnectable(int port) {
+		NIOManagerFactory.getSingleton().enableListenableAccepts(serverSocketChannel, this);
+	}
+
+	public void initialize(int port) {
+		setFactories();
+		serverSocketChannel = createSocketChannel(port);
+		createCommunicationObjects();
+		makeServerConnectable(port);
+	}
+
+	protected ServerSocketChannel createSocketChannel(int port) {
+		try {
+			ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+			InetSocketAddress inetSocketAddress = new InetSocketAddress(port);
+			serverSocketChannel.socket().bind(inetSocketAddress);
+			SocketChannelBound.newCase(this, serverSocketChannel, inetSocketAddress);
+			return serverSocketChannel;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	protected void addReadListener(SocketChannel socketChannel) {
+		NIOManagerFactory.getSingleton().addReadListener(socketChannel, sReceiver);
+	}
+
+	protected void addListeners(SocketChannel aSocketChannel) {
+		addReadListener(aSocketChannel);
+	}
+
+	@Override
+	public void socketChannelAccepted(ServerSocketChannel serverSocketChannel, SocketChannel socketChannel) {
+		clientList.add(socketChannel);
+		addListeners(socketChannel);
+	}
+	public static void buildNIOServer(String[] args) {
+		NIOServer aServer = new NIOServer();
+		SimulationParametersController aSimulationParametersController = new ASimulationParametersController();
+		aSimulationParametersController.addSimulationParameterListener(Server.getSingleton());
+		aServer.initialize(ServerArgsProcessor.getServerPort(args));
+		aSimulationParametersController.processCommands();
+	}
+	public static void main(String[] args) {
+		args = ServerArgsProcessor.removeEmpty(args);
+		FactoryTraceUtility.setTracing();
+		NIOTraceUtility.setTracing();
+		BeanTraceUtility.setTracing();
+		RMITraceUtility.setTracing();
+		ConsensusTraceUtility.setTracing();
+		ThreadDelayed.enablePrint();
+		buildNIOServer(args);
+		
+	}
+	public void quit(int aCode) {
+		System.exit(aCode);
+
+	}
+}

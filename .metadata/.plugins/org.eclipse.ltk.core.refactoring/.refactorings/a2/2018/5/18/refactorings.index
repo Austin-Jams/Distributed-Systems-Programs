@@ -1,0 +1,30 @@
+1525133134321	Rename local variable 'command'
+1525133148924	Rename local variable 'newValue'
+1525133389265	Rename field 'serverProxy'
+1525133425107	Rename field 'commandProcessorProxy'
+1525134241409	Rename local variable 'newValue'
+1525188307706	Rename local variable 'newValue'
+1525192042092	Rename local variable 'newValue'
+1525192173580	Rename local variable 'command'
+1525192578828	Rename local variable 'newValue'
+1525195469578	Rename local variable 'newValue'
+1525291024113	Move compilation unit
+1525291034116	Move compilation unit
+1525291042791	Rename package 'main'
+1525291049825	Move compilation unit
+1525291053115	Move compilation unit
+1525291065207	Move compilation unit
+1525291084621	Move compilation unit
+1525291087769	Move compilation unit
+1525291125851	Rename package 'rmi'
+1525291135738	Move compilation unit
+1525291142461	Move compilation unit
+1525291154786	Move compilation unit
+1525291158399	Move compilation unit
+1525291161976	Move compilation unit
+1525291168237	Move compilation unit
+1525291172323	Move compilation unit
+1525291176346	Move compilation unit
+1525291179169	Move compilation unit
+1525291183500	Delete element
+1525291186785	Delete element

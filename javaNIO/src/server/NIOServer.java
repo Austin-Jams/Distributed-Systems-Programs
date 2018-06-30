@@ -1,0 +1,181 @@
+package server;
+
+import java.net.InetSocketAddress;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+
+
+
+import assignments.util.inputParameters.ASimulationParametersController;
+import assignments.util.inputParameters.SimulationParametersListener;
+
+import assignments.util.mainArgs.ServerArgsProcessor;
+import util.trace.bean.BeanTraceUtility;
+import util.trace.factories.FactoryTraceUtility;
+
+import util.trace.port.nio.NIOTraceUtility;
+import util.trace.port.nio.SocketChannelBound;
+
+import inputport.nio.manager.NIOManagerFactory;
+import inputport.nio.manager.factories.classes.AReadingAcceptCommandFactory;
+import inputport.nio.manager.factories.selectors.AcceptCommandFactorySelector;
+import inputport.nio.manager.listeners.SocketChannelAcceptListener;
+
+import util.annotations.Tags;
+import util.interactiveMethodInvocation.ConsensusAlgorithm;
+import util.interactiveMethodInvocation.IPCMechanism;
+import util.interactiveMethodInvocation.SimulationParametersController;
+import util.tags.DistributedTags;
+
+@Tags({ DistributedTags.SERVER })
+public class NIOServer implements SocketChannelAcceptListener, SimulationParametersListener {
+	public static final String READ_THREAD_NAME = "Read Thread";
+	Receiver sReceiver;
+	ServerSocketChannel serverSocketChannel;
+	private ArrayBlockingQueue<Map<SocketChannel, ByteBuffer>> rQeueue;
+	private List<SocketChannel> clientList;
+	
+	private boolean atomic;
+	private boolean localProcessing;
+
+	public NIOServer() {
+		rQeueue = new ArrayBlockingQueue<Map<SocketChannel, ByteBuffer>>(4096);
+		clientList = new ArrayList<SocketChannel>();
+		atomic = false;
+		localProcessing = false;
+		Reader reader = new Reader(this, rQeueue, clientList);
+		Thread readThread = new Thread(reader);
+		readThread.setName(READ_THREAD_NAME);
+		readThread.start();
+	}
+
+	protected void createCommunicationObjects() {
+		createReceiver();
+	}
+
+	protected void createReceiver() {
+		sReceiver = new Receiver(rQeueue);
+	}
+
+	protected void setFactories() {
+		AcceptCommandFactorySelector.setFactory(new AReadingAcceptCommandFactory());
+	}
+
+	protected void makeServerConnectable(int aServerPort) {
+		NIOManagerFactory.getSingleton().enableListenableAccepts(serverSocketChannel, this);
+	}
+
+	public void initialize(int aServerPort) {
+		setFactories();
+		serverSocketChannel = createSocketChannel(aServerPort);
+		createCommunicationObjects();
+		makeServerConnectable(aServerPort);
+	}
+
+	protected ServerSocketChannel createSocketChannel(int aServerPort) {
+		try {
+			ServerSocketChannel openChannel = ServerSocketChannel.open();
+			InetSocketAddress internetSocketAddr = new InetSocketAddress(aServerPort);
+			openChannel.socket().bind(internetSocketAddr);
+			SocketChannelBound.newCase(this, openChannel, internetSocketAddr);
+			return openChannel;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	protected void addReadListener(SocketChannel aSocketChannel) {
+		NIOManagerFactory.getSingleton().addReadListener(aSocketChannel, sReceiver);
+	}
+
+	protected void addListeners(SocketChannel aSocketChannel) {
+		addReadListener(aSocketChannel);
+	}
+
+	@Override
+	public void socketChannelAccepted(ServerSocketChannel aServerSocketChannel, SocketChannel aSocketChannel) {
+		clientList.add(aSocketChannel);
+		addListeners(aSocketChannel);
+	}
+
+	public static void main(String[] args) {
+		args = ServerArgsProcessor.removeEmpty(args);
+		FactoryTraceUtility.setTracing();
+		NIOTraceUtility.setTracing();
+		BeanTraceUtility.setTracing();// not really needed, but does not hurt
+		NIOServer aServer = new NIOServer();
+		SimulationParametersController aSimulationParametersController = new ASimulationParametersController();
+		aSimulationParametersController.addSimulationParameterListener(aServer);
+		aServer.initialize(ServerArgsProcessor.getServerPort(args));
+		aSimulationParametersController.processCommands();
+	}
+
+	public boolean isAtomic() {
+		return atomic;
+	}
+	
+	public boolean localProcessing() {
+		return localProcessing;
+	}
+	
+	
+	@Override
+	public void atomicBroadcast(boolean newValue) {
+		atomic = newValue;
+	}
+
+	@Override
+	public void experimentInput() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void localProcessingOnly(boolean newValue) {
+		localProcessing = newValue;
+	}
+
+	@Override
+	public void ipcMechanism(IPCMechanism newValue) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void waitForBroadcastConsensus(boolean newValue) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void waitForIPCMechanismConsensus(boolean newValue) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void consensusAlgorithm(ConsensusAlgorithm newValue) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void quit(int aCode) {
+		System.exit(aCode);
+
+	}
+
+	@Override
+	public void simulationCommand(String aCommand) {
+		// TODO Auto-generated method stub
+
+	}
+}
